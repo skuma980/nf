@@ -1,0 +1,33 @@
+name: Export Istio images
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Pull official AMD64 images
+        run: |
+          docker pull --platform linux/amd64 docker.io/istio/pilot:1.32.0
+          docker pull --platform linux/amd64 docker.io/istio/proxyv2:1.32.0
+
+      - name: Export images
+        run: |
+          docker save -o istio-1.32.0-images.tar \
+            docker.io/istio/pilot:1.32.0 \
+            docker.io/istio/proxyv2:1.32.0
+          sha256sum istio-1.32.0-images.tar > SHA256SUMS
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: istio-1.32.0-images
+          path: |
+            istio-1.32.0-images.tar
+            SHA256SUMS
+          retention-days: 3
