@@ -10,6 +10,7 @@ jobs:
   export:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+
     env:
       AM_TAG: 1.21.6-am1
       AM_REPO: artifacts.aspenmesh.io
@@ -26,6 +27,7 @@ jobs:
           REGISTRY_KEY: ${{ secrets.ASPEN_REGISTRY_KEY_B64 }}
         run: |
           set -euo pipefail
+
           if [ -z "$REGISTRY_KEY" ]; then
             echo "Missing ASPEN_REGISTRY_KEY_B64 secret"
             exit 1
@@ -42,6 +44,7 @@ jobs:
       - name: Download platform package
         run: |
           set -euo pipefail
+
           helm pull \
             "oci://$AM_REPO/release/f5-aspen-mesh-platform-linux" \
             --version "$AM_TAG"
@@ -91,6 +94,16 @@ jobs:
           path: output/
           if-no-files-found: error
           compression-level: 0
+          retention-days: 3
+
+      - name: Upload platform package and Helm charts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aspen-mesh-1.21.6-am1-platform-and-charts
+          path: |
+            f5-aspen-mesh-platform-linux-1.21.6-am1.tgz
+            f5-aspen-mesh-platform-linux-1.21.6-am1/**/*.tgz
+          if-no-files-found: error
           retention-days: 3
 
       - name: Log out
